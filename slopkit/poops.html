@@ -200,12 +200,12 @@
   <a class="payloadTile" href="#" data-name="ftpsrv-ps5.elf" data-key="ftp"><img data-src="../ui/payload-ftp-default.png" alt=""></a>
   <a class="payloadTile" href="#" data-name="kstuff.elf" data-key="kstuff"><img data-src="../ui/payload-kstuff-default.png" alt=""></a>
   <a class="payloadTile" href="#" data-name="websrv-ps5.elf" data-key="web"><img data-src="../ui/payload-web-default.png" alt=""></a>
-  <a class="payloadTile" href="#" data-name="pldmgr_v0.5.1.elf" data-key="pldmgr"><img data-src="../ui/payload-pldmgr-default.png" alt=""></a>
   <a class="payloadTile" href="#" data-name="web-file-mgr-v1.1.elf" data-key="wfilemgr"><img data-src="../ui/payload-webfile-default.png" alt=""></a>
   <a class="payloadTile" href="#" data-name="ps5-backpork.elf" data-key="backpork"><img data-src="../ui/payload-backpork-default.png" alt=""></a>
   <a class="payloadTile" href="#" data-name="Lapy-JB-Daemon.elf" data-key="JBDaemon"><img data-src="../ui/payload-JBDaemon-default.png" alt=""></a>
   <a class="payloadTile" href="#" data-name="ShadowMountPlus_1.7alpha5.elf" data-key="SMP"><img data-src="../ui/payload-SMP-default.png" alt=""></a>
   <a class="payloadTile" href="#" data-name="np-fake-signin-ps5" data-key="np"><img data-src="../ui/payload-np-default.png" alt=""></a>
+  <a class="payloadTile" href="#" data-name="pldmgr_v0.5.1.elf" data-key="pldmgr"><img data-src="../ui/payload-pldmgr-default.png" alt=""></a>
 </div>
 <div id="nav"></div>
 <div id="arm" hidden>Open this page with <b>?go=1</b> to arm it. Nothing runs
@@ -234,66 +234,24 @@ otherwise.</div>
 });
 </script>
 <script>
+    // Auto-send PLDMGR v0.5.1 as soon as the ELF loader is ready.
     window.addEventListener('load', function() {
-        // الانتظار 4 ثوانٍ لتحميل الصفحة أول مرة
-        setTimeout(function() {
-            
-            var payloadMenu = document.getElementById("payloadMenu");
-            if (!payloadMenu) return;
-            
-            var payloadItems = Array.from(payloadMenu.querySelectorAll("a, button"));
-            if (payloadItems.length === 0) return;
-
-            let currentIndex = 0;
-
-            function runAndCheck() {
-                // إذا انتهينا من جميع الملفات
-                if (currentIndex >= payloadItems.length) {
-                    console.log("🎉 تم الانتهاء من تنفيذ جميع البايلودات بنجاح.");
-                    return;
-                }
-
-                let currentItem = payloadItems[currentIndex];
-                console.log(`▶️ تشغيل البايلود رقم: ${currentIndex + 1}`);
-                currentItem.click(); // الضغط على الملف
-
-                // مراقبة الصورة كل ثانية لمعرفة هل ظهرت sent أم failed
-                let checkInterval = setInterval(function() {
-                    let images = document.querySelectorAll("img");
-                    let statusFound = false;
-
-                    images.forEach(function(img) {
-                        let src = img.src ? img.src.toLowerCase() : "";
-
-                        // الحالة الأولى: نجحت العملية وظهرت كلمة sent
-                        if (src.includes("sent")) {
-                            statusFound = true;
-                            clearInterval(checkInterval);
-                            console.log(`✅ نجح البايلود رقم ${currentIndex + 1} (ظهرت sent)، الانتقال للتالي...`);
-                            
-                            currentIndex++; // الانتقال للملف التالي
-                            setTimeout(runAndCheck, 2000); // استراحة ثانيتين قبل البدء بالملف الجديد
-                        }
-                        // الحالة الثانية: فشلت العملية وظهرت كلمة failed
-                        else if (src.includes("failed")) {
-                            statusFound = true;
-                            clearInterval(checkInterval);
-                            console.log(`❌ فشل البايلود رقم ${currentIndex + 1} (ظهرت failed)، جاري إعادة المحاولة...`);
-                            
-                            // إعادة المحاولة لنفس الملف بعد ثانية ونصف
-                            setTimeout(function() {
-                                runAndCheck();
-                            }, 1000);
-                        }
-                    });
-
-                }, 500); // يفحص حالة الصورة كل ثانية
+        var started = false;
+        var timer = setInterval(function() {
+            if (started) {
+                clearInterval(timer);
+                return;
             }
+            if (!document.body.classList.contains('loader-ready')) return;
 
-            // البدء بالعملية
-            runAndCheck();
+            var tile = document.querySelector('#payloadMenu a[data-name="pldmgr_v0.5.1.elf"]');
+            if (!tile || typeof sendPayloadInPlace !== 'function') return;
 
-        }, 10000);
+            started = true;
+            clearInterval(timer);
+            console.log('▶️ Auto-starting PLDMGR v0.5.1');
+            sendPayloadInPlace('pldmgr_v0.5.1.elf', tile);
+        }, 250);
     });
 </script>
 <script src="syscalls.js"></script>
